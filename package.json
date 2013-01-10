@@ -1,0 +1,9 @@
+{
+	"name" : "notetoself",
+	"version" : "1.0.0",
+	"dependencies" : {
+		"restify": "2.0.4",
+		"mongoose": "3.5.4",
+		"lodash": "1.0.0"
+	} 
+}
