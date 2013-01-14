@@ -4,10 +4,12 @@ var restify = require('restify');
 var connect = require('connect');  
 var everyauth = require('everyauth');
 var bcrypt = require('bcrypt');
-var notesController = require("./app/controllers/notes");
 var mongoose = require('mongoose');
-var db = mongoose.connect(config.credentials.mongoose_auth);
+var jade = require('jade');
+var fs = require('fs');
 
+var db = mongoose.connect(config.credentials.mongoose_auth);
+var notesController = require("./app/controllers/notes");
 everyauth.debug = true;
 
 var usersById = {};
@@ -32,11 +34,12 @@ everyauth.everymodule
   .findUserById( function (id, callback) {
     callback(null, usersById[id]);
   });
-
+console.log(fs.readFileSync( __dirname+"/app/views/login.jade", "utf8" ));
 everyauth.password
   .getLoginPath('/login') // Uri path to the login page
   .postLoginPath('/login') // Uri path that your login form POSTs to
-  .loginView('a string of html; OR the name of the jade/etc-view-engine view')
+
+  .loginView(jade.compile(fs.readFileSync( __dirname+"/app/views/login.jade", "utf8" )))
   .authenticate( function (login, password) {
     // Either, we return a user or an array of errors if doing sync auth.
     // Or, we return a Promise that can fulfill to promise.fulfill(user) or promise.fulfill(errors)
@@ -66,7 +69,7 @@ everyauth.password
 
   .getRegisterPath('/register') // Uri path to the registration page
   .postRegisterPath('/register') // The Uri path that your registration form POSTs to
-  .registerView('./app/views/register.jade')
+  .registerView(jade.compile(fs.readFileSync( __dirname+"/app/views/register.jade", "utf8" )))
   .validateRegistration( function (newUserAttributes) {
     // Validate the registration input
     // Return undefined, null, or [] if validation succeeds
@@ -133,27 +136,30 @@ var createRestifyServer = function (options) {
 
     app.use(restify.bodyParser());
     app.pre(allowCrossDomain);    
-    app.get('/notes', notesController.get);
+    app.get('/notes/:id?', notesController.get);
+    // app.get('/notes', notesController.get);
+    
     app.post('/notes', notesController.post);
-    app.put('/notes', notesController.post);    
+    app.put('/notes/:id', notesController.put);    
     app.del('/notes/:id', notesController.del);
-    // everyauth.helpExpress(app);
+
     return app;
 }
 
-var restifyServer = createRestifyServer({name: config.app.name});
 
-var connectApp = connect()
-    .use(connect.cookieParser())
-    .use(connect.session({secret: '3}CHvDLA+g7?Yc'}))
-    .use(connect.logger())
-    .use(connect.bodyParser())
-    .use(connect.query())
-    .use(connect.static('public'))
+
+var express = require('express');
+var app = express();
+
+var expressApp = express()
+    .use(express.cookieParser())
+    .use(express.session({secret: '3}CHvDLA+g7?Yc'}))
+    .use(express.logger())
+    .use(express.bodyParser())
+    .use(express.query())
+    .use(express.static('public'))
     // And this is where the magic happens
-    .use("/api", function (req, res) {
-             restifyServer.server.emit('request', req, res);
-    })
+    .use("/api/notes",notesController.get)
     .use(everyauth.middleware());
 
-connectApp.listen(config.app.port);
+expressApp.listen(config.app.port);

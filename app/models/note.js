@@ -1,6 +1,6 @@
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
-// Note Schema
+
 var schema = new Schema({
     title: {type: String, required: true},
     context: {type: String, required: true},
@@ -12,9 +12,14 @@ var schema = new Schema({
     dateCreated: {type: Date, required: true}
 });
 
+// Support ID (rather than _ID)
 schema.virtual('id')
   .get(function () {
     return this._id.toHexString();
 });
 
-exports = schema;
+// Register Model
+mongoose.model('Note', schema); 
+var Note = mongoose.model('Note'); 
+
+module.exports = exports = Note;

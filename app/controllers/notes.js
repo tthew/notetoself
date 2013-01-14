@@ -1,15 +1,26 @@
-var noteSchema = require("../schemas/note");
-var mongoose = require("mongoose");
-// Register Note Model
-mongoose.model('Note', noteSchema); 
-var Note = mongoose.model('Note'); 
+var Note = require('../models/note');
 
-module.exports = {
+var controller = {
     // GET: /notes
     "get": function (req, res, next) {
-        Note.find().sort('-dateCreated').execFind(function (arr,data) {
-            res.send(data);
-        });
+        console.dir(req);
+        if (req) {
+            res.send(Note.find(req.route.param.id).execFind(function (arr, data) {
+                if (data) {
+                    res.send(data);
+                } else {
+                    res.send(404,[]);
+                }
+                
+            }))
+            return;
+        } else {
+            Note.find().sort('-dateCreated').execFind(function (arr,data) {
+                res.send(data);
+            });
+        }
+
+        
     },
 
     // POST: /notes
@@ -35,9 +46,9 @@ module.exports = {
 
     // DELETE: /notes/:noteId
     "del": function (req, res, next) {
-        if (req.params.id) {
-            console.log(req.params.id);
-            Note.remove(req.params.id, function (err) {
+        if (req.param('id')) {
+            console.log(req.param('id'));
+            Note.remove(req.param('id'), function (err) {
                 if (err) return handleError(err);
                 res.send(204);
                 return next();
@@ -47,4 +58,7 @@ module.exports = {
         }
     }
 };
+
+
+module.exports = exports = controller;
 
