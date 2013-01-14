@@ -3,9 +3,9 @@ var Note = require('../models/note');
 var controller = {
     // GET: /notes
     "get": function (req, res, next) {
-        console.dir(req);
-        if (req) {
-            res.send(Note.find(req.route.param.id).execFind(function (arr, data) {
+        // console.dir(req);
+        if (req.param('id')) {
+            res.send(Note.find(req.param('id')).execFind(function (arr, data) {
                 if (data) {
                     res.send(data);
                 } else {

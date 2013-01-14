@@ -136,7 +136,7 @@ var createRestifyServer = function (options) {
 
     app.use(restify.bodyParser());
     app.pre(allowCrossDomain);    
-    app.get('/notes/:id?', notesController.get);
+    app.get('/notes/:id', notesController.get);
     // app.get('/notes', notesController.get);
     
     app.post('/notes', notesController.post);
@@ -159,7 +159,7 @@ var expressApp = express()
     .use(express.query())
     .use(express.static('public'))
     // And this is where the magic happens
-    .use("/api/notes",notesController.get)
+    .use("/api/notes/:id",notesController.get)
     .use(everyauth.middleware());
 
 expressApp.listen(config.app.port);
