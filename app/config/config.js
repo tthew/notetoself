@@ -21,8 +21,8 @@ var Config = function () {
         },
         services: {
         	twitter: {
-        		consumerKey: '9LUWz5S3yLmY3sWnRZzMw',
-        		consumerSecret: 'XQwo4GanLC65bjgoFZo0wVFeSOdyygjwulEL3FE4E'
+        		consumerKey: 'aCSlu76Ure2Whtb9ohPg',
+        		consumerSecret: 'KwE08W5YX5MCfHRXjhIm8Z95XfXq6Oeza2LCDLzT5Y'
         	}
         }
     }
