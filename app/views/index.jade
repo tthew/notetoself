@@ -3,7 +3,9 @@ extends layout
 block content
 	if user
 		p
-			| Welcome #{user.username}
+			| Welcome #{user.name}
+			|would you like to 
+			a(href='/logout') logout?
 	else
 		p
 			| Welcome stranger would you like to 

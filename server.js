@@ -4,7 +4,8 @@ var Server = function() {
     var NODE_ENV = process.env.NODE_ENV || "development";
 
     var express = require('express')
-    , user = require('./app/routes/user')
+    , User = require('./core/models/user')
+    , usersController = require('./core/controllers/users')
     , http = require('http')
     , path = require('path')
     , mongoose = require('mongoose')
@@ -15,21 +16,27 @@ var Server = function() {
     var app = express();
 
     passport.serializeUser(function(user, done) {
-      done(null, user);
+      done(null, user.uid);
     });
 
-    passport.deserializeUser(function(obj, done) {
-      done(null, obj);
+    passport.deserializeUser(function(uid, done) {
+      User.findOne({uid: uid}, function (err, user) {
+        done(err, user);
+      });
     });
 
     passport.use(new TwitterStrategy({
         consumerKey: config.services.twitter.consumerKey,
         consumerSecret: config.services.twitter.consumerSecret,
         callbackURL: "http://notetoself.com:3000/auth/twitter/callback"
-      },
-      function(token, tokenSecret, profile, done) {
-        return done(null, profile);
-      }
+        },
+        function(token, tokenSecret, profile, done) {
+            usersController.findOrCreate(profile.id, profile, function(user) {
+                console.log("USER:");
+                console.log(user);
+                done(null, user);
+            });
+        }
     ));
 
     app.configure(function(){
@@ -55,11 +62,11 @@ var Server = function() {
 
     app.get('/', function(req, res){
       res.render('index', { user: req.user });
-    });
+  });
 
     app.get('/login', function(req, res){
       res.render('login', { user: req.user });
-    });
+  });
 
     // GET /auth/twitter
     //   Use passport.authenticate() as route middleware to authenticate the
@@ -71,7 +78,7 @@ var Server = function() {
       function(req, res){
         // The request will be redirected to Twitter for authentication, so this
         // function will not be called.
-      });
+    });
 
     // GET /auth/twitter/callback
     //   Use passport.authenticate() as route middleware to authenticate the
@@ -82,12 +89,12 @@ var Server = function() {
       passport.authenticate('twitter', { failureRedirect: '/login' }),
       function(req, res) {
         res.redirect('/');
-      });
+    });
 
     app.get('/logout', function(req, res){
       req.logout();
       res.redirect('/');
-    });    
+  });    
 
     // Simple route middleware to ensure user is authenticated.
     //   Use this route middleware on any resource that needs to be protected.  If
@@ -97,20 +104,21 @@ var Server = function() {
     function ensureAuthenticated(req, res, next) {
       if (req.isAuthenticated()) { return next(); }
       res.redirect('/login')
-    }
+  }
 
-    function _start() {
-        http.createServer(app).listen(app.get('port'), function(){
-          if (NODE_ENV === 'development') {
-              console.log("Express server listening on port " + app.get('port'));  
-          }
-          
-      });
-    }
-    
-    return {
-        start: _start
-    }
+  function _start() {
+    mongoose.connect(config.mongoose[NODE_ENV].connectionString);
+    http.createServer(app).listen(app.get('port'), function(){
+      if (NODE_ENV === 'development') {
+          console.log("Express server listening on port " + app.get('port'));  
+      }
+
+  });
+}
+
+return {
+    start: _start
+}
 
 }();
 
